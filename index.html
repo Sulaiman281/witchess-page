@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WitChess — Launching July 1, 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["'Outfit'", "sans-serif"],
+              mono: ["'DM Mono'", "monospace"],
+            },
+            colors: {
+              blue: {
+                DEFAULT: "#5A8EB2",
+                dim: "#3d6e8f",
+                dark: "#0A283C",
+                faint: "rgba(90,142,178,0.08)",
+                mist: "rgba(90,142,178,0.05)",
+              },
+              gold: { DEFAULT: "#f5c518", faint: "rgba(245,197,24,0.08)" },
+              bg: { base: "#040d15", 2: "#071525", 3: "#101820", 4: "#141f29" },
+              border: {
+                DEFAULT: "rgba(255,255,255,0.06)",
+                blue: "rgba(90,142,178,0.22)",
+                gold: "rgba(245,197,24,0.25)",
+              },
+            },
+            boxShadow: {
+              teal: "0 0 30px rgba(90,142,178,0.12)",
+              gold: "0 0 30px rgba(245,197,24,0.12)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: #040d15;
+        color: #e2e8f0;
+        font-family: "Outfit", sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      /* ── full-bleed background layers ── */
+      .bg-grid {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        background-image:
+          linear-gradient(rgba(90, 142, 178, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(90, 142, 178, 0.025) 1px, transparent 1px);
+        background-size: 64px 64px;
+      }
+      .bg-glow-top {
+        position: fixed;
+        top: -250px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1000px;
+        height: 700px;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          ellipse,
+          rgba(90, 142, 178, 0.06) 0%,
+          transparent 65%
+        );
+      }
+      .bg-glow-mid {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 1400px;
+        height: 800px;
+        pointer-events: none;
+        z-index: 0;
+        background: radial-gradient(
+          ellipse,
+          rgba(90, 142, 178, 0.03) 0%,
+          transparent 70%
+        );
+      }
+
+      /* ── animations ── */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes pulseBlue {
+        0%,
+        100% {
+          border-color: rgba(90, 142, 178, 0.22);
+          box-shadow: none;
+        }
+        50% {
+          border-color: rgba(90, 142, 178, 0.5);
+          box-shadow: 0 0 28px rgba(90, 142, 178, 0.1);
+        }
+      }
+      @keyframes countFlash {
+        0%,
+        100% {
+          color: #5a8eb2;
+        }
+        50% {
+          color: #fff;
+        }
+      }
+      .fade-in {
+        opacity: 0;
+        transform: translateY(24px);
+        animation: fadeUp 0.65s forwards;
+      }
+      .d1 {
+        animation-delay: 0.06s;
+      }
+      .d2 {
+        animation-delay: 0.16s;
+      }
+      .d3 {
+        animation-delay: 0.28s;
+      }
+      .d4 {
+        animation-delay: 0.42s;
+      }
+      .d5 {
+        animation-delay: 0.56s;
+      }
+      .d6 {
+        animation-delay: 0.7s;
+      }
+      .pulse-blue {
+        animation: pulseBlue 3s ease-in-out infinite;
+      }
+
+      /* ── inputs ── */
+      input {
+        font-family: "Outfit", sans-serif;
+      }
+      input::placeholder {
+        color: #1a3a52;
+      }
+      input:focus {
+        outline: none;
+        border-color: rgba(90, 142, 178, 0.5) !important;
+        box-shadow: 0 0 0 3px rgba(90, 142, 178, 0.07);
+      }
+
+      /* ── buttons ── */
+      .btn-primary {
+        background: linear-gradient(135deg, #5a8eb2, #3d6e8f);
+        color: #060a0e;
+        font-family: "Outfit", sans-serif;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #7aaecc, #5a8eb2);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 32px rgba(90, 142, 178, 0.25);
+      }
+      .btn-primary:active {
+        transform: translateY(0);
+      }
+      .btn-primary:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(90, 142, 178, 0.35);
+        color: #5a8eb2;
+        font-family: "Outfit", sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      .btn-outline:hover {
+        background: rgba(90, 142, 178, 0.07);
+        border-color: #5a8eb2;
+      }
+
+      /* ── cards ── */
+      .card {
+        background: #071525;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .card-inner {
+        background: #0a1e2e;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .card-teal {
+        border-color: rgba(90, 142, 178, 0.2) !important;
+      }
+      .card-gold {
+        border-color: rgba(245, 197, 24, 0.22) !important;
+      }
+
+      /* ── spec card hover ── */
+      .spec-card {
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .spec-card:hover {
+        border-color: rgba(90, 142, 178, 0.25) !important;
+        box-shadow: 0 0 24px rgba(90, 142, 178, 0.06);
+      }
+
+      /* ── mono label ── */
+      .label {
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #4a6278;
+      }
+
+      /* ── divider ── */
+      .divider-line {
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(90, 142, 178, 0.15),
+          transparent
+        );
+      }
+
+      /* ── countdown flash on change ── */
+      .flash {
+        animation: countFlash 0.25s;
+      }
+
+      /* ── form msg ── */
+      .msg-success {
+        background: rgba(90, 142, 178, 0.06);
+        border: 1px solid rgba(90, 142, 178, 0.25);
+        color: #5a8eb2;
+      }
+      .msg-error {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        color: #f87171;
+      }
+      .msg-warn {
+        background: rgba(245, 197, 24, 0.06);
+        border: 1px solid rgba(245, 197, 24, 0.25);
+        color: #f5c518;
+      }
+
+      /* ── scrollbar ── */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #040d15;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #1a3a52;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- background -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow-top"></div>
+    <div class="bg-glow-mid"></div>
+
+    <!-- ════════════════════ PAGE SHELL ════════════════════ -->
+    <div class="relative z-10 w-full">
+      <!-- ── NAV ── -->
+      <nav
+        class="fade-in d1 w-full border-b border-white/[0.06] bg-[#040d15]/90 backdrop-blur-md sticky top-0 z-50"
+      >
+        <div
+          class="max-w-6xl mx-auto px-5 sm:px-8 flex items-center justify-between h-16"
+        >
+          <div class="flex items-center gap-3">
+            <img
+              src="images/witchess.png"
+              alt="WitChess"
+              class="h-9 w-auto object-contain"
+            />
+            <span
+              class="hidden sm:inline label px-2 py-1 rounded-md"
+              style="background: rgba(90, 142, 178, 0.07); color: #5a8eb2"
+              >by WitShells</span
+            >
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="label hidden md:block">Launching July 1, 2026</span>
+            <a
+              href="#wishlist"
+              class="btn-primary text-[13px] font-semibold px-4 py-2 rounded-lg"
+              >Join Wishlist</a
+            >
+          </div>
+        </div>
+      </nav>
+
+      <!-- ── HERO ── -->
+      <section
+        class="fade-in d2 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-20 pb-16 text-center"
+      >
+        <div
+          class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal/20 mb-7"
+          style="background: rgba(90, 142, 178, 0.05)"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full bg-[#5A8EB2] animate-pulse"
+          ></span>
+          <span class="label" style="color: #5a8eb2; letter-spacing: 0.2em"
+            >↗ Micro-Esports Platform</span
+          >
+        </div>
+        <h1
+          class="font-black leading-[1] tracking-tight text-white mb-6"
+          style="font-size: clamp(52px, 10vw, 108px); line-height: 0.95"
+        >
+          Checkmate<br /><span class="text-[#5A8EB2]">Wins Real.</span>
+        </h1>
+        <p
+          class="text-[17px] text-slate-400 max-w-[540px] mx-auto leading-relaxed font-light mb-10"
+        >
+          Deploy your sharpest openings. Stake
+          <span class="text-slate-200 font-semibold">WitCoins</span>. Win
+          <span class="text-slate-200 font-semibold">real USDT</span>. WitChess
+          is a competitive chess arena where tactical skill translates directly
+          into earnings.
+        </p>
+        <div
+          class="flex flex-col sm:flex-row items-center justify-center gap-3"
+        >
+          <a
+            href="#wishlist"
+            class="btn-primary px-7 py-3.5 rounded-xl text-[15px] w-full sm:w-auto text-center"
+            >⇓ Join the Wishlist — Free</a
+          >
+          <a
+            href="#how-it-works"
+            class="btn-outline px-6 py-3.5 rounded-xl text-[14px] w-full sm:w-auto text-center"
+            >See How It Works →</a
+          >
+        </div>
+      </section>
+
+      <!-- ── CHESS DIVIDER ── -->
+      <div class="fade-in d2 max-w-6xl mx-auto px-5 sm:px-8 mb-16">
+        <div class="divider-line w-full"></div>
+      </div>
+
+      <!-- ── STATS STRIP ── -->
+      <div class="fade-in d3 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-16">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="card card-teal rounded-2xl p-6 text-center">
+            <div
+              class="text-[38px] font-black text-[#5A8EB2] leading-none mb-1"
+            >
+              $100
+            </div>
+            <div class="label">Launch Prize Pool</div>
+          </div>
+          <div class="card rounded-2xl p-6 text-center">
+            <div class="text-[38px] font-black text-white leading-none mb-1">
+              500
+            </div>
+            <div class="label">Free Matches</div>
+          </div>
+          <div class="card rounded-2xl p-6 text-center">
+            <div
+              class="text-[38px] font-black text-emerald-400 leading-none mb-1"
+            >
+              $0.20
+            </div>
+            <div class="label">Per Win · Guaranteed</div>
+          </div>
+          <div class="card card-gold rounded-2xl p-6 text-center">
+            <div
+              class="text-[38px] font-black text-[#f5c518] leading-none mb-1"
+            >
+              50
+            </div>
+            <div class="label">WC Free Bonus</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── HOW IT WORKS ── -->
+      <section
+        id="how-it-works"
+        class="fade-in d3 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20"
+      >
+        <div class="label mb-3" style="color: #5a8eb2">How It Works</div>
+        <h2
+          class="text-[36px] sm:text-[44px] font-black text-white mb-3 tracking-tight"
+        >
+          Three Steps to Earning
+        </h2>
+        <p class="text-slate-400 text-[15px] mb-10 max-w-lg">
+          No upfront cost. No luck involved. Just chess skill and a free WitCoin
+          balance.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <!-- step 1 -->
+          <div class="card rounded-2xl p-7 relative overflow-hidden">
+            <div
+              class="absolute top-5 right-5 font-black text-[80px] leading-none text-white/[0.03] select-none"
+            >
+              1
+            </div>
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-xl"
+              style="background: rgba(90, 142, 178, 0.1)"
+            >
+              ⛏
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">
+              Mine WitCoins Free
+            </h3>
+            <p class="text-[14px] text-slate-500 leading-relaxed">
+              Mine WitCoins daily at no cost on the <a href="https://witcoin.witshells.com" target="_blank" rel="noopener noreferrer">Witcoin app</a>. Your free
+              coins become your entry stakes for competitive matches.
+            </p>
+            <div
+              class="mt-4 inline-block label px-2 py-1 rounded-md"
+              style="background: rgba(90, 142, 178, 0.06); color: #5a8eb2"
+            >
+              Free — Always
+            </div>
+          </div>
+          <!-- step 2 -->
+          <div
+            class="card card-teal rounded-2xl p-7 relative overflow-hidden"
+            style="box-shadow: 0 0 30px rgba(90, 142, 178, 0.07)"
+          >
+            <div
+              class="absolute top-5 right-5 font-black text-[80px] leading-none text-white/[0.03] select-none"
+            >
+              2
+            </div>
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-xl"
+              style="background: rgba(90, 142, 178, 0.12)"
+            >
+              ♞
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">
+              Stake & Compete
+            </h3>
+            <p class="text-[14px] text-slate-500 leading-relaxed">
+              Enter a ranked match by staking your WitCoins. Choose your tier —
+              1, 5, 10, or 100 WC — and face a real opponent on the board.
+            </p>
+            <div
+              class="mt-4 inline-block label px-2 py-1 rounded-md"
+              style="background: rgba(90, 142, 178, 0.06); color: #5a8eb2"
+            >
+              Skill Only
+            </div>
+          </div>
+          <!-- step 3 -->
+          <div class="card rounded-2xl p-7 relative overflow-hidden">
+            <div
+              class="absolute top-5 right-5 font-black text-[80px] leading-none text-white/[0.03] select-none"
+            >
+              3
+            </div>
+            <div
+              class="w-11 h-11 rounded-xl flex items-center justify-center mb-5 text-xl"
+              style="background: rgba(90, 142, 178, 0.1)"
+            >
+              💰
+            </div>
+            <h3 class="text-[17px] font-bold text-white mb-2">
+              Win — Earn Real USDT
+            </h3>
+            <p class="text-[14px] text-slate-500 leading-relaxed">
+              Checkmate your opponent and earn real USDT directly into your
+              WitShells wallet. Every win during the launch pool pays $0.20
+              guaranteed.
+            </p>
+            <div
+              class="mt-4 inline-block label px-2 py-1 rounded-md"
+              style="background: rgba(16, 185, 129, 0.07); color: #34d399"
+            >
+              Real $
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── LAUNCH EVENT ── -->
+      <section class="fade-in d3 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20">
+        <div
+          class="card rounded-2xl border-t-2 overflow-hidden"
+          style="border-top-color: #5a8eb2"
+        >
+          <div class="p-8 sm:p-10">
+            <div
+              class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8"
+            >
+              <div>
+                <div class="label mb-2" style="color: #5a8eb2">
+                  Launch Event
+                </div>
+                <h2
+                  class="text-[32px] sm:text-[38px] font-black text-white tracking-tight"
+                >
+                  Grand Opening — July 1, 2026
+                </h2>
+              </div>
+              <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full self-start"
+                style="
+                  background: rgba(90, 142, 178, 0.07);
+                  border: 1px solid rgba(90, 142, 178, 0.2);
+                "
+              >
+                <span
+                  class="w-2 h-2 rounded-full bg-[#5A8EB2] animate-pulse"
+                ></span>
+                <span class="text-[#5A8EB2] text-[12px] font-semibold"
+                  >00:00 UTC</span
+                >
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
+              <div class="card-inner rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Prize Pool</div>
+                <div class="text-[22px] font-black text-[#5A8EB2]">
+                  $100 USDT
+                </div>
+              </div>
+              <div class="card-inner rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Free Matches</div>
+                <div class="text-[22px] font-black text-white">500</div>
+              </div>
+              <div class="card-inner rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Per-Win Payout</div>
+                <div class="text-[22px] font-black text-emerald-400">$0.20</div>
+              </div>
+              <div class="card-inner rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Entry Req.</div>
+                <div class="text-[18px] font-bold text-white">WitCoins</div>
+              </div>
+              <div class="card-inner rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Cost to Enter</div>
+                <div class="text-[18px] font-bold text-emerald-400">Free</div>
+              </div>
+              <div class="card-inner card-gold rounded-xl p-4 sm:p-5">
+                <div class="label mb-2">Signup Bonus</div>
+                <div class="text-[22px] font-black text-[#f5c518]">50 WC</div>
+              </div>
+            </div>
+
+            <div class="divider-line mb-6"></div>
+            <p class="text-[14px] text-slate-500 leading-relaxed max-w-2xl">
+              WitChess goes live
+              <span class="text-slate-300 font-semibold">July 1, 2026</span>
+              with a fully sponsored $100 USDT prize pool — meaning the first
+              500 matches are completely free to enter. Every win pays
+              <span class="text-slate-300 font-semibold">$0.20 USDT</span> out
+              of the house pool with zero entry cost. Everyone who wishlisted
+              early joins the platform with
+              <span class="text-slate-300 font-semibold"
+                >50 WitCoins already in their wallet</span
+              >, ready to stake the moment ranked lobbies open.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── COUNTDOWN ── -->
+      <section class="fade-in d4 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20">
+        <div class="card rounded-2xl p-8 sm:p-12 text-center pulse-blue">
+          <div class="label mb-8" style="color: #5a8eb2">
+            Deployment Counter
+          </div>
+          <div class="flex items-start justify-center gap-2 sm:gap-4 flex-wrap">
+            <div class="flex flex-col items-center gap-3">
+              <div
+                id="days"
+                class="font-black text-white tabular-nums rounded-xl border border-white/[0.07] leading-none flex items-center justify-center"
+                style="
+                  background: #0a1e2e;
+                  font-size: clamp(48px, 9vw, 80px);
+                  width: clamp(72px, 16vw, 104px);
+                  height: clamp(72px, 16vw, 104px);
+                "
+              >
+                00
+              </div>
+              <div class="label">Days</div>
+            </div>
+            <div
+              class="font-black text-white/10 pt-2"
+              style="font-size: clamp(40px, 8vw, 72px)"
+            >
+              :
+            </div>
+            <div class="flex flex-col items-center gap-3">
+              <div
+                id="hours"
+                class="font-black text-white tabular-nums rounded-xl border border-white/[0.07] leading-none flex items-center justify-center"
+                style="
+                  background: #0a1e2e;
+                  font-size: clamp(48px, 9vw, 80px);
+                  width: clamp(72px, 16vw, 104px);
+                  height: clamp(72px, 16vw, 104px);
+                "
+              >
+                00
+              </div>
+              <div class="label">Hours</div>
+            </div>
+            <div
+              class="font-black text-white/10 pt-2"
+              style="font-size: clamp(40px, 8vw, 72px)"
+            >
+              :
+            </div>
+            <div class="flex flex-col items-center gap-3">
+              <div
+                id="minutes"
+                class="font-black text-white tabular-nums rounded-xl border border-white/[0.07] leading-none flex items-center justify-center"
+                style="
+                  background: #0a1e2e;
+                  font-size: clamp(48px, 9vw, 80px);
+                  width: clamp(72px, 16vw, 104px);
+                  height: clamp(72px, 16vw, 104px);
+                "
+              >
+                00
+              </div>
+              <div class="label">Mins</div>
+            </div>
+            <div
+              class="font-black text-white/10 pt-2"
+              style="font-size: clamp(40px, 8vw, 72px)"
+            >
+              :
+            </div>
+            <div class="flex flex-col items-center gap-3">
+              <div
+                id="seconds"
+                class="font-black tabular-nums rounded-xl border leading-none flex items-center justify-center"
+                style="
+                  background: #0a1e2e;
+                  color: #5a8eb2;
+                  border-color: rgba(90, 142, 178, 0.3);
+                  font-size: clamp(48px, 9vw, 80px);
+                  width: clamp(72px, 16vw, 104px);
+                  height: clamp(72px, 16vw, 104px);
+                "
+              >
+                00
+              </div>
+              <div class="label">Secs</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ARENA SPECS ── -->
+      <section
+        id="how-it-works"
+        class="fade-in d4 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20"
+      >
+        <div class="label mb-3" style="color: #5a8eb2">
+          Arena Specifications
+        </div>
+        <h2
+          class="text-[36px] sm:text-[44px] font-black text-white mb-3 tracking-tight"
+        >
+          How WitChess Works
+        </h2>
+        <p class="text-slate-400 text-[15px] mb-10 max-w-lg">
+          Everything engineered for competitive chess that pays.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">🛡️</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              Hybrid Pool Mechanics
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              Launch on the
+              <span class="text-slate-300">$100 sponsored house pool</span> —
+              zero entry fee. When depleted, switch to peer-to-peer WitCoin
+              staking.
+            </p>
+          </div>
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">💰</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              Tiered Staking Lobbies
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              P2P matchmaking across
+              <span class="font-mono text-[#5A8EB2] text-[12px]"
+                >1 · 5 · 10 · 100 WC</span
+              >
+              per match. Enter at your level, grow your stack, climb.
+            </p>
+          </div>
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">⏱️</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              Blitz & Bullet Formats
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              Locked speed rounds. Compete in
+              <span class="text-slate-300">2-min, 5-min, or 10-min</span>
+              hyper-focused configurations.
+            </p>
+          </div>
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">⚡</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              Elite Architecture
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              Ultra-low latency multiplayer with
+              <span class="text-slate-300">in-game voice chat</span> during live
+              play. Talk strategy on the board.
+            </p>
+          </div>
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">📊</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              Full FEN History
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              Every move in complete
+              <span class="text-slate-300">FEN notation</span>. Replay any game,
+              run engine analysis, study like a grandmaster.
+            </p>
+          </div>
+          <div class="spec-card card rounded-2xl p-6">
+            <div class="text-2xl mb-4">💵</div>
+            <h3 class="text-[15px] font-bold text-white mb-2">
+              USDT Settlements
+            </h3>
+            <p class="text-[13px] text-slate-500 leading-relaxed">
+              Winnings pay to your USDT wallet. Min withdrawal
+              <span class="text-emerald-400 font-semibold">$30</span>, flat
+              <span class="text-slate-300">5% fee</span>. Real money. Fast.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── WITCOIN FUEL ── -->
+      <section class="fade-in d5 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20">
+        <div
+          class="card rounded-2xl p-7 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
+          style="
+            background: linear-gradient(
+              135deg,
+              rgba(90, 142, 178, 0.05) 0%,
+              #0b1117 100%
+            );
+          "
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-xl"
+              style="background: rgba(90, 142, 178, 0.1)"
+            >
+              ⛏
+            </div>
+            <div>
+              <div class="text-[16px] font-bold text-white mb-1">
+                Need WitCoins to fuel your stakes?
+              </div>
+              <div class="text-[13px] text-slate-500">
+                Mine free WitCoins on our flagship platform — no investment
+                required.
+              </div>
+            </div>
+          </div>
+          <a
+            href="https://witcoin.witshells.com"
+            target="_blank"
+            class="btn-outline px-5 py-3 rounded-xl whitespace-nowrap font-semibold text-[13px]"
+          >
+            Mine Free at WitCoin →
+          </a>
+        </div>
+      </section>
+
+      <!-- ── WISHLIST ── -->
+      <section
+        id="wishlist"
+        class="fade-in d5 w-full max-w-6xl mx-auto px-5 sm:px-8 mb-20"
+      >
+        <div
+          class="card rounded-2xl border-t-2 relative overflow-hidden p-8 sm:p-12"
+          style="border-top-color: #5a8eb2"
+        >
+          <!-- corner glow -->
+          <div
+            class="absolute top-0 right-0 w-72 h-72 pointer-events-none"
+            style="
+              background: radial-gradient(
+                circle at top right,
+                rgba(90, 142, 178, 0.07),
+                transparent 65%
+              );
+            "
+          ></div>
+
+          <div class="mb-8">
+            <div class="label mb-2" style="color: #5a8eb2">
+              Secure Early Access
+            </div>
+            <h2
+              class="text-[34px] sm:text-[42px] font-black text-white tracking-tight mb-3"
+            >
+              Join the Wishlist
+            </h2>
+            <p class="text-slate-400 text-[15px]">
+              Be first in. Claim your 50 WitCoins before launch.
+            </p>
+          </div>
+
+          <!-- 50 WC callout -->
+          <div
+            class="rounded-xl border p-5 sm:p-6 mb-8 flex items-start gap-4"
+            style="
+              background: rgba(90, 142, 178, 0.05);
+              border-color: rgba(90, 142, 178, 0.2);
+            "
+          >
+            <div
+              class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-[13px] text-[#060a0e]"
+              style="background: #5a8eb2"
+            >
+              WC
+            </div>
+            <div>
+              <div class="text-[15px] font-bold text-[#5A8EB2] mb-1.5">
+                🎁 50 WitCoins — Free, On First Sign-In
+              </div>
+              <p class="text-[13px] text-slate-500 leading-relaxed">
+                Every wishlist member gets
+                <span class="text-slate-300">50 WitCoins</span> automatically
+                credited the moment you first sign in after launch — enough to
+                enter
+                <span class="text-slate-300"
+                  >50 standard matches immediately</span
+                >. No deposit. No catch.
+              </p>
+            </div>
+          </div>
+
+          <p class="font-mono text-[13px] text-slate-600 mb-7">
+            <span id="wishlist-count" class="text-[#5A8EB2] font-medium"
+              >—</span
+            >
+            challengers already on the list.
+          </p>
+
+          <div class="grid sm:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label for="nickname" class="block label mb-2">In-Game Tag</label>
+              <input
+                type="text"
+                id="nickname"
+                placeholder="e.g., MagnusAlpha"
+                class="w-full card-inner rounded-xl border border-white/[0.06] px-4 py-3.5 text-white text-[15px] transition-all"
+              />
+            </div>
+            <div>
+              <label for="email" class="block label mb-2"
+                >Email Address *</label
+              >
+              <input
+                type="email"
+                id="email"
+                placeholder="you@domain.com"
+                required
+                class="w-full card-inner rounded-xl border border-white/[0.06] px-4 py-3.5 text-white text-[15px] transition-all"
+              />
+            </div>
+          </div>
+
+          <button
+            id="submit-btn"
+            type="button"
+            class="btn-primary w-full rounded-xl py-4 text-[17px] font-bold flex items-center justify-center gap-3"
+          >
+            Claim Your 50 WitCoins
+            <span
+              class="text-[12px] font-mono font-normal opacity-70 hidden sm:inline"
+              >+50 WC on Launch</span
+            >
+          </button>
+
+          <div
+            id="form-message"
+            class="hidden font-mono text-[13px] rounded-xl px-4 py-3.5 mt-4"
+          ></div>
+        </div>
+      </section>
+
+      <!-- ── FOOTER ── -->
+      <footer class="fade-in d6 w-full border-t border-white/[0.06] mt-4">
+        <div
+          class="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-3"
+        >
+          <div class="text-[17px] font-black text-slate-600">
+            Wit<span class="text-slate-500">Shells</span>
+          </div>
+          <div class="label text-center">
+            © 2026 WitShells Studio (SMC-Private) Limited. All rights reserved.
+          </div>
+          <div class="flex items-center gap-1 text-[12px] text-slate-700">
+            <span>Built by</span>
+            <span class="text-slate-500 font-semibold">Syed Suleman</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- /page -->
+
+    <script>
+      const API_BASE = "https://witcoin.witshells.com/api/PublicStatus";
+      const countEl = document.getElementById("wishlist-count");
+      const emailEl = document.getElementById("email");
+      const nickEl = document.getElementById("nickname");
+      const btn = document.getElementById("submit-btn");
+      const msgEl = document.getElementById("form-message");
+
+      /* ── count ── */
+      async function loadCount() {
+        try {
+          const r = await fetch(`${API_BASE}/wishlist`);
+          if (r.ok) {
+            const d = await r.json();
+            countEl.textContent = (d.count || 0).toLocaleString();
+          }
+        } catch {
+          countEl.textContent = "Active";
+        }
+      }
+
+      /* ── submit ── */
+      btn.addEventListener("click", async () => {
+        const email = emailEl.value.trim();
+        const nick = nickEl.value.trim();
+        if (!email) {
+          showMsg("error", "Email address is required.");
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "Syncing…";
+        clearMsg();
+        try {
+          const r = await fetch(`${API_BASE}/wishlist`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email,
+              itemName: "witchess",
+              nickName: nick || "NoNick",
+            }),
+          });
+          const d = await r.json();
+          if (r.ok) {
+            if (d.message && d.message.toLowerCase().includes("already"))
+              showMsg("warn", d.message || "Already on wishlist.");
+            else {
+              showMsg(
+                "success",
+                "✓ You're on the list! 50 WitCoins will be credited to your wallet on first sign-in at launch.",
+              );
+              emailEl.value = "";
+              nickEl.value = "";
+              loadCount();
+            }
+          } else
+            showMsg("error", d.message || "Something went wrong. Try again.");
+        } catch {
+          showMsg(
+            "error",
+            "Network error. Check your connection and try again.",
+          );
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML =
+            'Claim Your 50 WitCoins <span class="text-[12px] font-mono font-normal opacity-70 hidden sm:inline">+50 WC on Launch</span>';
+        }
+      });
+
+      function showMsg(type, text) {
+        msgEl.textContent = text;
+        msgEl.className = `font-mono text-[13px] rounded-xl px-4 py-3.5 mt-4 msg-${type}`;
+      }
+      function clearMsg() {
+        msgEl.className = "hidden";
+      }
+
+      /* ── countdown ── */
+      const target = new Date("2026-07-01T00:00:00Z").getTime();
+      const els = {
+        days: document.getElementById("days"),
+        hours: document.getElementById("hours"),
+        minutes: document.getElementById("minutes"),
+        seconds: document.getElementById("seconds"),
+      };
+      const prev = { days: "", hours: "", minutes: "", seconds: "" };
+
+      function flash(el) {
+        el.classList.add("flash");
+        setTimeout(() => el.classList.remove("flash"), 260);
+      }
+      function tick() {
+        const diff = Math.max(0, target - Date.now());
+        const d = Math.floor(diff / 86400000),
+          h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000),
+          s = Math.floor((diff % 60000) / 1000);
+        const vals = {
+          days: String(d).padStart(2, "0"),
+          hours: String(h).padStart(2, "0"),
+          minutes: String(m).padStart(2, "0"),
+          seconds: String(s).padStart(2, "0"),
+        };
+        for (const k in vals) {
+          if (vals[k] !== prev[k]) {
+            els[k].textContent = vals[k];
+            flash(els[k]);
+            prev[k] = vals[k];
+          }
+        }
+      }
+
+      loadCount();
+      tick();
+      setInterval(tick, 1000);
+    </script>
+  </body>
+</html>
